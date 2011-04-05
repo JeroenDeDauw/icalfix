@@ -1,15 +1,20 @@
 '''
 Created on Apr 5, 2011
 
-@author: jeroen
+@licence GNU GPL v3+
+@author: Jeroen De Dauw
 '''
+
+import sys
+import getopt
+import urllib
 
 class IcalTimezoneFix(object):
     '''
     Simple to modify the times in an iCalendar file to match another timezone
     '''
     
-    def fix(self, ical, offset=2):
+    def fix(self, ical, offset):
         return '\n'.join([self.fixLine(line, offset) for line in ical.split('\n')])
     
     def fixLine(self, line, offset):
@@ -46,10 +51,53 @@ class IcalTimezoneFix(object):
         
         return date + 'T' + str(hour).rjust(2,'0') + minutes + ' - ' + fulltime
 
+def show_help():
+    print """
+icalfix.py -s source [-o offset] [-? help]
+
+Offsets the times in an iCalendar file by a number of hours to fix timezone fails.    
+
+  -s, --source source
+                URL pointing to the source iCal file
+                * http://tinyurl.com/0x20Calendar
+                * http://tinyurl.com/HsbCalendar
+  -o --offset offset
+                Number of hours to offset, signed integer. Defaults to -2
+  -?, --help
+                Shows this help.
+    """
+
 def main():
+    try:
+        opts, a = getopt.getopt(sys.argv[1:], "s:o:?", ["source=", "offset=", "help"])
+    except getopt.GetoptError, err:
+        print str(err) 
+        show_help()
+        sys.exit(2)
+    
+    source=None
+    offset=-2
+    
+    for opt, arg in opts:
+        if opt in ("-s", "--source"):
+            source = arg
+        elif opt in ("-o", "--offset"):
+            offset = arg
+        elif opt in ("-?", "--help"):
+            show_help()
+            sys.exit()
+        else:
+            assert False, "unhandled option" 
+    
+    if not source:
+        print "Missing source option"
+        show_help()
+        sys.exit(1)
+    
     fixer = IcalTimezoneFix()
-    f = open('demo.ics', 'r')
-    print fixer.fix(f.read())
+    f = urllib.urlopen(source)
+    #f = open('demo.ics', 'r')
+    print fixer.fix(f.read(), offset)
 
 if __name__ == '__main__':
     main()
