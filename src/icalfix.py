@@ -47,7 +47,7 @@ class IcalTimezoneFix(object):
         
         if dateoffset != 0:
             # TODO: obviously this fails at month edges; fix
-            date = date[:-2] + str(int(date[-2:]) + dateoffset)
+            date = date[:-2] + str(int(date[-2:]) + dateoffset).rjust(2,'0')
         
         return date + 'T' + str(hour).rjust(2,'0') + minutes
 
