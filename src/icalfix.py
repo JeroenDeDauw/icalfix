@@ -16,46 +16,22 @@ class IcalTimezoneFix(object):
     Simple to modify the times in an iCalendar file to match another timezone
     '''
     
-    def fix(self, ical, offset):
-        return '\n'.join([self.fixLine(line, offset) for line in ical.split('\n')])
+    def fix(self, ical, timezone):
+        return '\n'.join([self.fixLine(line, timezone) for line in ical.split('\n')])
     
-    def fixLine(self, line, offset):
+    def fixLine(self, line, timezone):
         if ['DTSTART', 'DTEND'].count(line.split(':')[0]) == 1:
             parts = line.split(':')
-            parts[1] = self.fixTime(parts[1], offset)
-            line = ':'.join(parts)
+            parts[1] = self.fixTime(parts[1], timezone)
+            line = ';'.join(parts)
         return line
     
-    def fixTime(self, fulltime, offset):
-        parts = fulltime.split('T')
-        
-        if len(parts) == 1:
-            return fulltime
-        
-        date = parts[0]
-        hour = int(parts[1][0:2])
-        minutes = parts[1][2:] 
-        
-        hour += offset
-        
-        if hour > 23:
-            dateoffset = 1
-        elif hour < 0:
-            dateoffset = -1
-        else:
-            dateoffset = 0
-        
-        hour += 24 * dateoffset
-        
-        if dateoffset != 0:
-            # TODO: obviously this fails at month edges; fix
-            date = date[:-2] + str(int(date[-2:]) + dateoffset).rjust(2,'0')
-        
-        return date + 'T' + str(hour).rjust(2,'0') + minutes
+    def fixTime(self, fulltime, timezone):
+        return "TZID=%s:%s" % (timezone, fulltime)
 
 def show_help():
     print """
-icalfix.py -s source [-o offset] [-? help]
+icalfix.py -s source [-t timezone] [-? help]
 
 Offsets the times in an iCalendar file by a number of hours to fix timezone fails.    
 
@@ -63,28 +39,28 @@ Offsets the times in an iCalendar file by a number of hours to fix timezone fail
                 URL pointing to the source iCal file
                 * http://tinyurl.com/0x20Calendar
                 * http://tinyurl.com/HsbCalendar
-  -o --offset offset
-                Number of hours to offset, signed integer. Defaults to -2
+  -t --timezone timezone
+                Timezone. Defaults to Europe/Brussels
   -?, --help
                 Shows this help.
     """
 
 def main():
     try:
-        opts, a = getopt.getopt(sys.argv[1:], "s:o:?", ["source=", "offset=", "help"])
+        opts, a = getopt.getopt(sys.argv[1:], "s:t:?", ["source=", "timezone=", "help"])
     except getopt.GetoptError, err:
         print str(err) 
         show_help()
         sys.exit(2)
     
     source=None
-    offset=-2
+    timezone="Europe/Brussels"
     
     for opt, arg in opts:
         if opt in ("-s", "--source"):
             source = arg
-        elif opt in ("-o", "--offset"):
-            offset = arg
+        elif opt in ("-t", "--timezone"):
+            timezone = arg
         elif opt in ("-?", "--help"):
             show_help()
             sys.exit()
@@ -99,7 +75,7 @@ def main():
     fixer = IcalTimezoneFix()
     f = urllib.urlopen(source)
     #f = open('demo.ics', 'r')
-    print fixer.fix(f.read(), offset)
+    print fixer.fix(f.read(), timezone)
 
 if __name__ == '__main__':
     main()
