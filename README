@@ -1,2 +1,5 @@
-Crappy Python script to change times in an iCalendar file a number
+Written by Jeroen De Dauw < jeroendedauw@gmail.com >
+Licenced under the GNU GPL v3 or later
+
+Simple Python script to change times in an iCalendar file a number
 of hours to get around Google Calendar timezone fails.

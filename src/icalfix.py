@@ -1,8 +1,10 @@
+#!/usr/bin/python2.7
+
 '''
 Created on Apr 5, 2011
 
 @licence GNU GPL v3+
-@author: Jeroen De Dauw
+@author: Jeroen De Dauw < jeroendedauw@gmail.com >
 '''
 
 import sys
